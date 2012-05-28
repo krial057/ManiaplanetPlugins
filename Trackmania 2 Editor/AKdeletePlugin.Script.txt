@@ -1,0 +1,146 @@
+#RequireContext CGameCtnEditorPluginScriptHandler
+
+
+Text CreateManialink(Boolean HelpDisplay)
+{
+	declare Integer Period for ManialinkPage;
+	declare MLText =
+	"""
+		<script><!--
+			#Include "TextLib" as TextLib
+			Void onDeleteAll()	{ declare ChangeModeAction for Page = 0; ChangeModeAction=1; }
+			Void onDeleteBlocks()	{ declare ChangeModeAction for Page = 0; ChangeModeAction=2; }
+			Void onRecalcLights()	{ declare ChangeModeAction for Page = 0; ChangeModeAction=3; }
+			Void onDeleteTerrain() {declare ChangeModeAction for Page = 0; ChangeModeAction=4;}
+			Void onDeleteSelection() {declare ChangeModeAction for Page = 0; ChangeModeAction=5;}
+			
+			Void UpdatePeriod()
+			{
+				declare Integer Period for Page;
+				declare PeriodCtrl <=> (Page.GetFirstChild("PeriodValue") as CGameManialinkEntry);
+				if(PeriodCtrl != Null)
+					Period = TextLib::ToInteger(PeriodCtrl.Value);
+			}
+			
+			Void OnChangeHelpDisplay()	{ declare Boolean ChangeHelpDisplay for Page; ChangeHelpDisplay = True; }
+			main () {
+				while(True) {
+					yield;
+					declare Boolean HelpDisplay for Page;
+					if(HelpDisplay)
+						UpdatePeriod();
+					foreach(Event in PendingEvents) {
+						if(Event.Type == CGameManialinkScriptEvent::Type::MouseClick)
+						{	
+							if(Event.ControlId == "qadDeleteAll")			onDeleteAll();
+							else if(Event.ControlId == "qadDeleteBlocks")		onDeleteBlocks();
+							else if(Event.ControlId == "qadCalcLights")		onRecalcLights();
+							else if(Event.ControlId == "qadDeleteTerrain")		onDeleteTerrain();
+							else if(Event.ControlId == "qadDeleteSelection")		onDeleteSelection();
+							if(Event.ControlId == "qadCalcLightsSetInterval" || Event.ControlId == "HelpOkQuad" || Event.ControlId == "HelpOkLabel")
+									OnChangeHelpDisplay();
+						}
+					}
+				}
+			}
+		--></script>
+		<frame>
+			<quad id="TestQuad1" posn="-160 45 -1" sizen="35 53" style="Bgs1" substyle="BgList" ScriptEvents="1"/>
+				<quad id="qadDeleteCat" posn="-143 41 0"  sizen="32 6" halign="center" valign="center" style="Bgs1InRace" substyle="BgTitlePage" ScriptEvents="1"/>
+				<label id="lblDeleteCat" text="Delete:" posn="-143 41 1" halign="center" valign="center" style="TextTitle3" />
+					<quad id="qadDeleteAll" posn="-145 34" sizen="30 6" halign="center" valign="center" style="Bgs1InRace" substyle="BgCard" ScriptEvents="1"/>
+						<label id="lblDeleteAll" text="everything" posn="-145 34"  halign="center" valign="center" style="TextButtonSmall" textsize="2"/>
+					<quad id="qadDeleteBlocks" posn="-145 28" sizen="30 6" halign="center" valign="center" style="Bgs1InRace" substyle="BgCard" ScriptEvents="1"/>
+						<label id="lblDeleteBlocks" text="Blocks only" posn="-145 28"  halign="center" valign="center" style="TextButtonSmall" textsize="2"/>
+					<quad id="qadDeleteTerrain" posn="-145 22" sizen="30 6" halign="center" valign="center" style="Bgs1InRace" substyle="BgCard" ScriptEvents="1"/>
+						<label id="lblDeleteTerrain" text="Terrain only" posn="-145 22"  halign="center" valign="center" style="TextButtonSmall" textsize="2"/>
+					<quad id="qadDeleteSelection" posn="-145 16" sizen="30 6" halign="center" valign="center" style="Bgs1InRace" substyle="BgCard" ScriptEvents="1"/>
+						<label id="lblDeleteSelection" text="Selection" posn="-145 16"  halign="center" valign="center" style="TextButtonSmall" textsize="2"/>
+				<quad id="qadShadowsCat" posn="-143 10 0"  sizen="32 6" halign="center" valign="center" style="Bgs1InRace" substyle="BgTitlePage" ScriptEvents="1"/>
+				<label id="lblShadowsCat" text="Shadows:" posn="-143 10 1" halign="center" valign="center" style="TextTitle3" />
+					<quad id="qadCalcLights" posn="-145 3" sizen="30 6" halign="center" valign="center" style="Bgs1InRace" substyle="BgCard" ScriptEvents="1"/>
+						<label id="lblCalcLights" text="Now" posn="-145 3"  halign="center" valign="center" style="TextButtonSmall" textsize="2"/>
+					<quad id="qadCalcLightsSetInterval" posn="-145 -3" sizen="30 6" halign="center" valign="center" style="Bgs1InRace" substyle="BgCard" ScriptEvents="1"/>
+						<label id="lblCalcLightsSetInterval" text="Set Interval" posn="-145 -3"  halign="center" valign="center" style="TextButtonSmall" textsize="2"/>""";
+	if(HelpDisplay)
+	{
+		MLText ^=
+		"""
+			<quad id="HelpTitleQuad" posn="0 50 -1" sizen="80 15" halign="center" valign="center" style="Bgs1InRace" substyle="BgTitle3_1"/>
+			<label id="HelpTitleLabel" text="AK Delete Plugin" posn="0 50" halign="center" valign="center" style="TextTitle3"/>
+			
+			<quad id="HelpQuad" posn="0 43 -2" sizen="100 25" halign="center" valign="top" style="Bgs1" substyle="BgList"/>
+				<label text="Enter 0 for no auto update shadows" posn="0 40" halign="center" valign="center" textsize="1"/>
+				<label id="HelpText" text="Update shadows every " posn="-35 35" valign="center" textsize="2"/>
+				<entry id="PeriodValue" default="""^Period^""" posn="20 35" sizen="10 3.5" halign="left" valign="center" textsize="2"/>
+				<label id="MinutesLabel" text="min" posn="31 35" valign="center" textsize="2"/>
+				
+				<quad id="HelpOkQuad" posn="0 25 -1" sizen="30 6" halign="center" valign="center" style="Bgs1" substyle="BgCard" ScriptEvents="1"/>
+				<label id="HelpOkLabel" text="OK" posn="0 25" halign="center" valign="center" style="TextButtonSmall" textsize="2"/>
+			
+		""";
+	}
+	MLText^="""</frame>""";
+	return MLText;
+}
+
+/////////////////////////////////////
+// Main
+/////////////////////////////////////
+main()
+{
+	log("DeleteMode.Script starts");
+	
+	declare ChangeModeAction for ManialinkPage = 0;
+	
+	declare LatestAutoCalc = Now;
+	declare Period for ManialinkPage = 0;
+	declare HelpDisplay for ManialinkPage = False;
+	declare ChangeHelpDisplay for ManialinkPage = False;
+	declare persistent selectedBlocks for Map=0;
+	
+	ManialinkText = CreateManialink(HelpDisplay);		
+	while(True) {
+		yield;
+		if(ChangeModeAction==1) {
+			log("Delete all");
+			RemoveAllBlocksAndTerrain();
+			ChangeModeAction = 0;			
+		}
+		else if(ChangeModeAction==2) {
+			log("Delete Blocks");
+			RemoveAllBlocks();
+			ChangeModeAction = 0;
+		}
+		else if(ChangeModeAction==3) {
+			log("Recalculating shadow");
+			ComputeShadows();
+			ChangeModeAction = 0;
+		}
+		else if(ChangeModeAction==4) {
+			log("Delete terrain");
+			RemoveTerrainBlocks(<0,0,0>,<Map.Size[0]-1,Map.Size[1]-1,Map.Size[2]-1>);
+			ChangeModeAction = 0;
+		}
+		else if(ChangeModeAction==5)
+		{
+			log("Delete Custom Selection");
+			CustomSelectionCoords.clear();
+			selectedBlocks=0;
+			ChangeModeAction = 0;
+		}
+		if(ChangeHelpDisplay)
+		{
+			ChangeHelpDisplay = False;
+			HelpDisplay = !HelpDisplay;
+			ManialinkText = CreateManialink(HelpDisplay);
+		}
+		
+		// change ViewMode if necessary
+		if(Period > 0 && Now > LatestAutoCalc + Period*1000*60)
+		{
+			LatestAutoCalc = Now;
+			ComputeShadows();
+		}
+	}
+}

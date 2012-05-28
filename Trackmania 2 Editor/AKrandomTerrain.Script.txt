@@ -1,0 +1,220 @@
+#RequireContext CGameCtnEditorPluginScriptHandler
+#Include "MathLib" as MathLib
+
+Text CreateManialink(Boolean TerrainGenerationOptions)
+{
+	declare Integer maxBlocks for ManialinkPage;
+	declare MLText =
+	"""
+		<script><!--
+		 	#Include "TextLib" as TextLib
+			
+			Void OnChangeSettingsDisplay()	{ declare Boolean showTerrainGenerationOptions for Page; showTerrainGenerationOptions = True; }
+			Void OnClickGenerateTerrain() { declare Boolean doGenerateTerrain for Page; doGenerateTerrain = True; }
+			
+			main () {
+			declare Boolean TerrainGenerationOptions for Page;
+				while(True) {
+					yield;
+					if(TerrainGenerationOptions)
+					{
+							declare Integer maxBlocks for Page;
+							declare PeriodCtrl <=> (Page.GetFirstChild("PeriodValue") as CGameManialinkEntry);
+							if(PeriodCtrl != Null)
+								maxBlocks = TextLib::ToInteger(PeriodCtrl.Value);
+					}
+			
+					foreach(Event in PendingEvents) {
+						if(Event.Type == CGameManialinkScriptEvent::Type::MouseClick)
+						{
+								if(Event.ControlId == "qadGenerateTerrainSettings"||Event.ControlId == "HelpOkQuad")
+									OnChangeSettingsDisplay();
+								if(Event.ControlId == "qadGenerateTerrain")
+									OnClickGenerateTerrain();									
+						}
+					}
+				}
+			}
+		--></script>
+		<frame>
+			<quad posn="130 25 -1" sizen="20 10" style="Bgs1" substyle="BgList" ScriptEvents="1"/>
+				<label id="lblGenerateTerrain" text="Generate Terrain" posn="140 24"  halign="center" valign="center" style="Red" textsize="0.7"/>
+				<quad id="qadGenerateTerrain" posn="131 20 1" sizen="10 10" valign="center" style="UIConstructionSimple_Buttons" substyle="Underground" ScriptEvents="1"/>
+				<quad id="qadGenerateTerrainSettings" posn="140 20 1" sizen="8 8" valign="center" style="UIConstructionSimple_Buttons" substyle="Tools" ScriptEvents="1"/>
+			
+	""";
+	if(TerrainGenerationOptions)
+	{
+		MLText ^=
+		"""
+			<quad id="qadSettinsTitle" posn="0 50 -1" sizen="80 15" halign="center" valign="center" style="Bgs1InRace" substyle="BgTitle3_1"/>
+			<label id="lblSettinsTitle" text="AK Terrain Generator" posn="0 50" halign="center" valign="center" style="TextTitle3"/>
+			
+			<quad id="qadSettings" posn="0 43 -2" sizen="100 25" halign="center" valign="top" style="Bgs1" substyle="BgList"/>
+				
+				<label id="lblNumBlocks" text="How many Blocks to create" posn="-35 35" valign="center" textsize="2"/>
+				<entry id="PeriodValue" default="{{{maxBlocks}}}" posn="20 35" sizen="10 3.5" halign="left" valign="center" textsize="2"/>
+				
+				<quad id="HelpOkQuad" posn="0 25 -1" sizen="30 6" halign="center" valign="center" style="Bgs1" substyle="BgCard" ScriptEvents="1"/>
+				<label id="HelpOkLabel" text="OK" posn="0 25" halign="center" valign="center" style="TextButtonSmall" textsize="2"/>
+			
+		""";
+	}
+	MLText ^=
+	"""
+		</frame>
+	""";
+	return MLText;
+}
+
+Void buildTerrain(Text[] blocks, Int3 positionStart,Int3 positionEnd)
+{
+	declare Integer i;
+	RemoveTerrainBlocks(positionStart,positionEnd);
+	for(i,0,blocks.count-1)
+	{
+		if(CanPlaceTerrainBlocks(TerrainBlockModels[blocks[i]], <positionStart.X+i,0,positionStart.Z+i>, <positionEnd.X-i,0,positionEnd.Z-i>))
+		{	
+			PlaceTerrainBlocks(TerrainBlockModels[blocks[i]], <positionStart.X+i,0,positionStart.Z+i>, <positionEnd.X-i,0,positionEnd.Z-i>);
+		}
+	}
+}
+
+
+main()
+{
+
+	/**
+	 *Some general generation configurations
+	 **/
+	declare Integer maxBlocks for ManialinkPage=30;
+	declare Integer maxBlockWidth for ManialinkPage=10;
+	declare Integer maxBlockDepth for ManialinkPage=10;
+	//how heigh the terrain should get. if 0-9, every heights will be possible
+	declare Integer minHeight for ManialinkPage=0;
+	declare Integer maxHeight for ManialinkPage=9;
+
+	/**
+	 *Interface variables
+	 **/
+	declare stopPlacing for ManialinkPage=False;
+	declare showTerrainGenerationOptions for ManialinkPage=False;
+	declare TerrainGenerationOptions  for ManialinkPage=False;
+	declare doGenerateTerrain for ManialinkPage=False;
+	ManialinkText=CreateManialink(False);
+	
+	/**
+	 *Declaration of the different height terrain combinations
+	 **/
+	declare terrainBlockTemplates=Text[][][];
+	terrainBlockTemplates.add(Text[][]);
+	terrainBlockTemplates[0].add(Text[]);
+	terrainBlockTemplates[0][0].add("WaterCliff12");
+	
+	terrainBlockTemplates.add(Text[][]);
+	terrainBlockTemplates[1].add(Text[]);
+	terrainBlockTemplates[1][0].add("DirtHill2");
+	
+	terrainBlockTemplates.add(Text[][]);
+	terrainBlockTemplates[2].add(Text[]);
+	terrainBlockTemplates[2][0].add("DirtHill2");
+	terrainBlockTemplates[2][0].add("DirtHill2");
+	
+	terrainBlockTemplates.add(Text[][]);
+	terrainBlockTemplates[3].add(Text[]);
+	terrainBlockTemplates[3][0].add("DirtHill2");
+	terrainBlockTemplates[3][0].add("DirtHill2");
+	terrainBlockTemplates[3][0].add("DirtHill2");
+	
+	terrainBlockTemplates.add(Text[][]);
+	terrainBlockTemplates[4].add(Text[]);
+	terrainBlockTemplates[4][0].add("DirtHill2");
+	terrainBlockTemplates[4][0].add("DirtHill2");
+	terrainBlockTemplates[4][0].add("DirtHill2");
+	terrainBlockTemplates[4][0].add("DirtHill2");
+	terrainBlockTemplates[4].add(Text[]);
+	terrainBlockTemplates[4][1].add("DirtCliff8");
+	
+	terrainBlockTemplates.add(Text[][]);
+	terrainBlockTemplates[5].add(Text[]);
+	terrainBlockTemplates[5][0].add("DirtHill2");
+	terrainBlockTemplates[5][0].add("DirtCliff8");
+	terrainBlockTemplates[5].add(Text[]);
+	terrainBlockTemplates[5][1].add("DirtCliff8");
+	terrainBlockTemplates[5][1].add("DirtHill2");
+	
+	
+	terrainBlockTemplates.add(Text[][]);
+	terrainBlockTemplates[6].add(Text[]);	
+	terrainBlockTemplates[6][0].add("DirtHill2");
+	terrainBlockTemplates[6][0].add("DirtHill2");
+	terrainBlockTemplates[6][0].add("DirtCliff8");
+	terrainBlockTemplates[6].add(Text[]);
+	terrainBlockTemplates[6][1].add("DirtCliff8");
+	terrainBlockTemplates[6][1].add("DirtHill2");
+	terrainBlockTemplates[6][1].add("DirtHill2");
+	terrainBlockTemplates[6].add(Text[]);
+	terrainBlockTemplates[6][2].add("DirtHill2");
+	terrainBlockTemplates[6][2].add("DirtCliff8");
+	terrainBlockTemplates[6][2].add("DirtHill2");
+	
+	terrainBlockTemplates.add(Text[][]);
+	terrainBlockTemplates[7].add(Text[]);
+	terrainBlockTemplates[7][0].add("DirtCliff8");
+	terrainBlockTemplates[7][0].add("DirtCliff8");
+	
+	terrainBlockTemplates.add(Text[][]);
+	terrainBlockTemplates[8].add(Text[]);
+	terrainBlockTemplates[8][0].add("DirtCliff8");
+	terrainBlockTemplates[8][0].add("DirtCliff8");
+	
+	terrainBlockTemplates.add(Text[][]);
+	terrainBlockTemplates[9].add(Text[]);
+	terrainBlockTemplates[9][0].add("DirtHill2");
+	terrainBlockTemplates[9][0].add("DirtCliff8");
+	terrainBlockTemplates[9][0].add("DirtCliff8");
+	terrainBlockTemplates[9].add(Text[]);
+	terrainBlockTemplates[9][1].add("DirtCliff8");
+	terrainBlockTemplates[9][1].add("DirtHill2");
+	terrainBlockTemplates[9][1].add("DirtCliff8");
+	terrainBlockTemplates[9].add(Text[]);
+	terrainBlockTemplates[9][2].add("DirtCliff8");
+	terrainBlockTemplates[9][2].add("DirtCliff8");
+	terrainBlockTemplates[9][2].add("DirtHill2");
+	
+	terrainBlockTemplates.add(Text[][]);
+	terrainBlockTemplates[10].add(Text[]);
+	terrainBlockTemplates[10][0].add("DirtCliff8");
+	terrainBlockTemplates[10][0].add("DirtCliff8");
+	terrainBlockTemplates[10][0].add("DirtCliff8");
+	
+	while(True)
+	{
+		yield;
+		// change help display if necessary
+		if(showTerrainGenerationOptions)
+		{
+			showTerrainGenerationOptions = False;
+			TerrainGenerationOptions = !TerrainGenerationOptions;
+			ManialinkText = CreateManialink(TerrainGenerationOptions);
+		}
+		if(doGenerateTerrain)
+		{
+			doGenerateTerrain=False;
+			
+			PlaceTerrainBlocks(TerrainBlockModels["WaterCliff12"], <0,0,0>, <Map.Size.X-1,0,Map.Size.Z-1>);
+			
+			for(i,0,maxBlocks)
+			{
+				yield;
+				declare Integer randHeight=MathLib::Rand(minHeight,maxHeight);
+				declare Integer randSizeX=MathLib::Rand(2,maxBlockWidth);
+				declare Integer randSizeZ=MathLib::Rand(2,maxBlockDepth);
+				declare Integer randPosX=MathLib::Rand(0,Map.Size.X-1-randSizeX);
+				declare Integer randPosZ=MathLib::Rand(0,Map.Size.Z-1-randSizeZ);
+				declare Integer randIndex=MathLib::Rand(0,terrainBlockTemplates[randHeight].count-1);
+				buildTerrain(terrainBlockTemplates[randHeight][randIndex],<randPosX,0,randPosZ>,<randPosX+randSizeX,0,randPosZ+randSizeZ>);
+			}
+		}
+	}
+}

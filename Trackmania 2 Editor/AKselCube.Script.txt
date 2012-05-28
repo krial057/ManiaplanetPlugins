@@ -1,0 +1,237 @@
+#RequireContext CGameCtnEditorPluginScriptHandler
+#Include "MathLib" as MathLib
+
+Text CreateManialink(Boolean CubeOptions)
+{
+	declare Int3 size for ManialinkPage;
+	declare Boolean hollow for ManialinkPage;
+	declare MLText =
+	"""
+		<script><!--
+		
+			#Include "TextLib" as TextLib
+			
+			Void onSelCubeAdd()	{ declare ChangeModeAction for Page = 0; ChangeModeAction=1; declare  enterCustomSelectionMode for Page=False;enterCustomSelectionMode=True;}
+			Void onSelCubeSub()	{ declare ChangeModeAction for Page = 0; ChangeModeAction=2; declare  enterCustomSelectionMode for Page=False;enterCustomSelectionMode=True;}
+			Void onChangeSettingsDisplay() {declare Boolean showCubeOptions for Page; showCubeOptions = True; }
+			main () 
+			{
+				declare Boolean CubeOptions for Page;
+				declare Boolean hollow for Page;
+				declare HollowCheckCross <=> (Page.GetFirstChild("qadHollowCheckCross") as CGameManialinkQuad);
+				while(True) 
+				{
+					yield;
+					
+					if(hollow&&CubeOptions)
+					{
+						HollowCheckCross.Show();
+					}
+					else if(!hollow&&CubeOptions)
+					{
+						HollowCheckCross.Hide();
+					}
+					
+					if(CubeOptions)
+					{
+							declare Int3 size for Page;
+							declare Boolean hollow for Page;
+							declare Ctrl <=> (Page.GetFirstChild("sizeXValue") as CGameManialinkEntry);
+							if(Ctrl != Null)
+								size.X = TextLib::ToInteger(Ctrl.Value);
+								
+							Ctrl <=> (Page.GetFirstChild("sizeYValue") as CGameManialinkEntry);
+							if(Ctrl != Null)
+								size.Y = TextLib::ToInteger(Ctrl.Value);
+							
+					}
+					foreach(Event in PendingEvents) 
+					{
+						if(Event.Type == CGameManialinkScriptEvent::Type::MouseClick)
+						{	
+							if(Event.ControlId == "qadSelCubeAdd")	onSelCubeAdd();
+							if(Event.ControlId == "qadSelCubeSub")	onSelCubeSub();
+							if(Event.ControlId == "qadHollowCheckBox"||Event.ControlId == "qadHollowCheckCross")	hollow=!hollow;
+							if(Event.ControlId == "qadSelCubeSettings"||Event.ControlId == "HelpOkQuad")
+								onChangeSettingsDisplay();
+						}
+					}
+				}
+			}
+		--></script>
+		<frame>
+			<quad posn="-140 90 -1" sizen="17 10" style="Bgs1" substyle="BgList" ScriptEvents="1"/>
+				<label id="lblSelCube" text="Cube" posn="-133 87"  halign="center" valign="center" style="Red" textsize="2"/>
+				<quad id="qadSelCubeAdd" posn="-136 83 1" sizen="7 7" halign="center" valign="center" style="Icons64x64_1" substyle="Add" ScriptEvents="1"/>
+				<quad id="qadSelSCubeSub" posn="-131 83 1" sizen="7 7" halign="center" valign="center" style="Icons64x64_1" substyle="Sub" ScriptEvents="1"/>
+				<quad id="qadSelCubeSettings" posn="-126 83 1" sizen="7 7" valign="center" halign="center" style="UIConstructionSimple_Buttons" substyle="Tools" ScriptEvents="1"/>""";			
+	if(CubeOptions)
+	{
+		MLText ^=
+		"""
+			<quad id="qadSettingsTitle" posn="0 50 -1" sizen="80 15" halign="center" valign="center" style="Bgs1InRace" substyle="BgTitle3_1"/>
+			<label id="lblSettingsTitle" text="Cube Setiings" posn="0 50" halign="center" valign="center" style="TextTitle3"/>
+			
+			<quad id="qadSettings" posn="0 43 -2" sizen="100 35" halign="center" valign="top" style="Bgs1" substyle="BgList"/>
+				
+				<label id="lblSizeX" text="Size X" posn="-38 35" valign="center" textsize="2"/>
+				<entry id="sizeXValue" default="{{{size.X}}}" posn="28 35" sizen="10 3.5" halign="left" valign="center" textsize="2"/>
+				
+				<label id="lblSizeY" text="Size Y (height)" posn="-38 30" valign="center" textsize="2"/>
+				<entry id="sizeYValue" default="{{{size.Y}}}" posn="28 30" sizen="10 3.5" halign="left" valign="center" textsize="2"/>
+				
+				<label id="lblSizeY" text="Size Z" posn="-38 25" valign="center" textsize="2"/>
+				<entry id="sizeYValue" default="{{{size.Z}}}" posn="28 25" sizen="10 3.5" halign="left" valign="center" textsize="2"/>
+				
+				<label id="lblHollow" text="Hollow?" posn="-38 20" valign="center" textsize="2"/>
+				<quad id="qadHollowCheckBox" posn="28 20" sizen="5 5" halign="left" valign="center" style="Icons64x64_1" substyle="ClipPause" scriptevents="1"/>
+				<quad id="qadHollowCheckCross" posn="28 20 1" sizen="5 5" halign="left" valign="center" style="Icons64x64_1" substyle="Close" scriptevents="1"/>
+				
+				<quad id="HelpOkQuad" posn="0 15 -1" sizen="30 6" halign="center" valign="center" style="Bgs1" substyle="BgCard" ScriptEvents="1"/>
+				<label id="HelpOkLabel" text="OK" posn="0 15" halign="center" valign="center" style="TextButtonSmall" textsize="2"/>
+			
+		""";
+	}
+	MLText ^=
+	"""
+		</frame>
+	""";
+	return MLText;
+}
+
+
+Void createCube(Int3 position,Int3 Size, Boolean Hollow, Boolean Create)
+{
+	declare Int3 positionStart;
+	positionStart.X=position.X-(Size.X/2);
+	positionStart.Y=position.Y-(Size.Y/2);
+	positionStart.Z=position.Z-(Size.Z/2);
+	
+	
+	//create hollowed cube
+	if(Hollow) 
+	{
+		for(x,0,Size.X)
+		{
+			for(y,0,Size.Y)
+			{
+				if(Create)
+				{
+					CustomSelectionCoords.add(<positionStart.X+x,positionStart.Y+y,positionStart.Z>);
+					CustomSelectionCoords.add(<positionStart.X+x,positionStart.Y+y,positionStart.Z+Size.Z>);
+				}
+				else if(CustomSelectionCoords.exists(<positionStart.X+x,positionStart.Y+y,positionStart.Z>)&&CustomSelectionCoords.exists(<positionStart.X+x,positionStart.Y+y,positionStart.Z+Size.Z>))
+				{
+					CustomSelectionCoords.add(<positionStart.X+x,positionStart.Y+y,positionStart.Z>);
+					CustomSelectionCoords.remove(<positionStart.X+x,positionStart.Y+y,positionStart.Z+Size.Z>);
+				}
+			}
+		}
+		for(z,0,Size.Z)
+		{
+			for(y,0,Size.Y)
+			{
+				if(Create)
+				{
+					CustomSelectionCoords.add(<positionStart.X,positionStart.Y+y,positionStart.Z+z>);
+					CustomSelectionCoords.add(<positionStart.X+Size.X,positionStart.Y+y,positionStart.Z+z>);
+				}
+				else if(CustomSelectionCoords.exists(<positionStart.X,positionStart.Y+y,positionStart.Z+z>)&&CustomSelectionCoords.exists(<positionStart.X+Size.X,positionStart.Y+y,positionStart.Z+z>))
+				{
+					CustomSelectionCoords.remove(<positionStart.X,positionStart.Y+y,positionStart.Z+Size.Z+z>);
+					CustomSelectionCoords.remove(<positionStart.X+Size.X,positionStart.Y+y,positionStart.Z+z>);
+				}	
+			}
+		}	
+		for(x,0,Size.X)
+		{
+			for(z,0,Size.Z)
+			{
+				if(Create)
+				{
+					CustomSelectionCoords.add(<positionStart.X+x,positionStart.Y,positionStart.Z+z>);
+					CustomSelectionCoords.add(<positionStart.X+x,positionStart.Y+Size.Y,positionStart.Z+z>);
+				}
+				else if(CustomSelectionCoords.exists(<positionStart.X+x,positionStart.Y,positionStart.Z+z>)&&CustomSelectionCoords.exists(<positionStart.X+x,positionStart.Y+Size.Y,positionStart.Z+z>))
+				{
+					CustomSelectionCoords.remove(<positionStart.X+x,positionStart.Y,positionStart.Z+Size.Z+z>);
+					CustomSelectionCoords.remove(<positionStart.X+x,positionStart.Y+Size.Y,positionStart.Z+Size.Z+z>);
+				}	
+			}
+		}
+	}
+	else
+	{
+		//create non-hollowed cube
+		for(x,0,Size.X) 
+		{
+			for(y,0,Size.Y) 
+			{
+				for(z,0,Size.Z) 
+				{
+					if(Create)
+						CustomSelectionCoords.add(<positionStart.X+x,positionStart.Y+y,positionStart.Z+z>);
+					else if(CustomSelectionCoords.exists(<positionStart.X+x,positionStart.Y+y,positionStart.Z+z>))
+						CustomSelectionCoords.remove(<positionStart.X+x,positionStart.Y+y,positionStart.Z+z>);
+				}
+			}
+		}
+	}
+}
+
+main()
+{
+	declare Integer ChangeModeAction for ManialinkPage;
+	declare persistent selectedBlocks for Map=0;
+	declare Boolean enterCustomSelectionMode for ManialinkPage;
+	
+	declare Int3 size for ManialinkPage=<5,5,5>;
+	declare Boolean hollow for ManialinkPage=False;
+	
+	declare showCubeOptions for ManialinkPage=False;
+	declare CubeOptions  for ManialinkPage=False;
+	
+	//customSelection Mode: 0 exit selectionMode 1: sphere 2:block
+	declare persistent customSelctionMode for Map=0;
+	ManialinkText = CreateManialink(False);	
+
+	while(True)
+	{
+		yield;
+		
+		if(customSelctionMode==2&&CustomSelectionCoords.count!=selectedBlocks)
+		{
+			if(ChangeModeAction==1)
+			{
+				//remove position block from selection
+				declare Int3 positionBlock= CustomSelectionCoords[CustomSelectionCoords.count-1];
+				CustomSelectionCoords.removekey(CustomSelectionCoords.count-1);
+				createCube(positionBlock,size,hollow,True);
+				selectedBlocks=CustomSelectionCoords.count;
+			}
+			else
+			{
+				//remove position block from selection
+				declare Int3 positionBlock= CustomSelectionCoords[CustomSelectionCoords.count-1];
+				CustomSelectionCoords.removekey(CustomSelectionCoords.count-1);
+				createCube(positionBlock,size,hollow,False);
+				selectedBlocks=CustomSelectionCoords.count;
+			}
+		}
+		if(enterCustomSelectionMode)
+		{
+			log("Build Cube Mode");
+			customSelctionMode=2;
+			PlaceMode = ::PlaceMode::CustomSelection; 
+			enterCustomSelectionMode=False;
+		}
+		
+		if(showCubeOptions)
+		{
+			showCubeOptions = False;
+			CubeOptions = !CubeOptions;
+			ManialinkText = CreateManialink(CubeOptions);
+		}
+		
+	}
+}

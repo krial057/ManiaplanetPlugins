@@ -1,0 +1,65 @@
+#RequireContext CGameCtnEditorPluginScriptHandler
+#Include "MathLib" as MathLib
+
+Text CreateManialink()
+{
+	declare MLText =
+	"""
+		<script><!--
+			Void onSelFill()	{ declare ChangeModeAction for Page = 0; ChangeModeAction=1; }
+			Void onSelDelete() { declare ChangeModeAction for Page = 0; ChangeModeAction=2; }
+			main () 
+			{
+				while(True) 
+				{
+					yield;
+					foreach(Event in PendingEvents) 
+					{
+						if(Event.Type == CGameManialinkScriptEvent::Type::MouseClick)
+						{	
+							if(Event.ControlId == "qadSelFill")			onSelFill();
+							if(Event.ControlId == "qadSelDelete")			onSelDelete();
+						}
+					}
+				}
+			}
+		--></script>
+		<frame>
+			<quad id="qadSelFill" posn="-90 87" sizen="25 5" halign="center" valign="center" style="Bgs1InRace" substyle="BgCard" ScriptEvents="1"/>
+				<label id="lblSelFill" text="Fill" posn="-90 87"  halign="center" valign="center" style="TextButtonSmall" textsize="2"/>
+			<quad id="qadSelDelete" posn="-90 82" sizen="25 5" halign="center" valign="center" style="Bgs1InRace" substyle="BgCard" ScriptEvents="1"/>
+				<label id="lblSelDelete" text="Delete" posn="-90 82"  halign="center" valign="center" style="TextButtonSmall" textsize="2"/>
+		</frame>""";
+	return MLText;
+}
+
+main()
+{
+	declare Integer ChangeModeAction for ManialinkPage;
+	ManialinkText = CreateManialink();	
+	ShowCustomSelection();
+	while(True)
+	{
+		yield;
+		if(ChangeModeAction==1&&CursorBlockModel != Null)
+		{
+			foreach(coord in CustomSelectionCoords)
+			{
+				declare Boolean OnGround; // modified by CanPlaceBlock
+				declare Integer VariantIndex;	// not used but mandatory : modified by CanPlaceBlock
+				if(CanPlaceBlock(CursorBlockModel,coord,::CardinalDirections::North,OnGround,VariantIndex))
+					PlaceBlock(CursorBlockModel,coord,::CardinalDirections::North);
+			}
+			ChangeModeAction=0;
+		}
+		
+		if(ChangeModeAction==2)
+		{
+			foreach(coord in CustomSelectionCoords)
+			{
+				RemoveBlock(coord);
+			}
+			ChangeModeAction=0;
+		}
+	}
+}

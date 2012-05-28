@@ -1,0 +1,52 @@
+#RequireContext CGameCtnEditorPluginScriptHandler
+#Include "MathLib" as MathLib
+
+Text CreateManialink()
+{
+	declare MLText =
+	"""
+		<script><!--
+			Void onSelFinish()	{ declare ChangeModeAction for Page = 0; ChangeModeAction=1; }
+			Void onChangeHelpShow() {}
+			main () 
+			{
+				while(True) 
+				{
+					yield;
+					foreach(Event in PendingEvents) 
+					{
+						if(Event.Type == CGameManialinkScriptEvent::Type::MouseClick)
+						{	
+							if(Event.ControlId == "qadSelFinish")	onSelFinish();
+						}
+					}
+				}
+			}
+		--></script>
+		<frame>
+			<quad posn="-120 90 -1" sizen="16 10" style="Bgs1" substyle="BgList" ScriptEvents="1"/>
+				<label id="lblSelFinish" text="Finish" posn="-113 87"  halign="center" valign="center" style="Red" textsize="2"/>
+				<quad id="qadSelFinish" posn="-113 83 1" sizen="7 7" halign="center" valign="center" style="Icons64x64_1" substyle="Finish" ScriptEvents="1"/>
+		</frame>""";
+	return MLText;
+}
+
+
+
+main()
+{
+	declare Integer customSelectionMode for ManialinkPage=0;
+	declare Integer ChangeModeAction for ManialinkPage;
+	declare persistent selectedBlocks for Map=0;
+	ManialinkText = CreateManialink();	
+	while(True)
+	{
+		yield;
+		if(ChangeModeAction==1)
+		{
+			customSelectionMode=0;
+			PlaceMode = ::PlaceMode::Block; 
+			ChangeModeAction=0;
+		}
+	}
+}

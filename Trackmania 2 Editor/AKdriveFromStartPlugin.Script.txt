@@ -1,0 +1,72 @@
+#RequireContext CGameCtnEditorPluginScriptHandler
+
+Text CreateManialink(Boolean showHint)
+{
+	declare MLText =
+	"""
+		<script><!--
+			Void onTestFromStart()	{ declare ChangeModeAction for Page = 0; ChangeModeAction=1; }
+			main () 
+			{
+				while(True) 
+				{
+					yield;
+					foreach(Event in PendingEvents) 
+					{
+						if(Event.Type == CGameManialinkScriptEvent::Type::MouseClick)
+						{	
+							if(Event.ControlId == "qadTestFromStart")			
+								onTestFromStart();
+						}
+						if(Event.Type == CGameManialinkScriptEvent::Type::MouseOut)
+						{	
+							if(Event.ControlId == "qadTestFromStart")	
+							{		
+								declare ChangeModeAction for Page = 0; ChangeModeAction=2;
+							}
+						}
+					}
+				}
+			}
+		--></script>
+		<frame>
+			<quad posn="130 40 -1" sizen="20 10" style="Bgs1" substyle="BgList" ScriptEvents="1"/>
+				<label id="lblTestFromStart" text="Test" posn="140 38"  halign="center" valign="center" style="Red" textsize="1"/>
+				<quad id="qadTestFromStart" posn="140 35 1" sizen="10 10" halign="center" valign="center" style="UIConstructionSimple_Buttons" substyle="Drive" ScriptEvents="1"/>
+				<label id="lblTestFromStart" text="From Start" posn="140 32"  halign="center" valign="center" style="Red" textsize="1"/>""";
+		if(showHint) 
+			MLText^="""	<quad id="qadHint" posn="0 50 -1" sizen="140 15" halign="center" valign="center" style="Bgs1InRace" substyle="BgTitle3_1"/>
+						<label id="lblHint" text="DO NOT MOVE YOUR MOUSE and hit ENTER on the keyboard!" posn="0 50" halign="center" valign="center" style="TextTitle3"/>""";
+		MLText^="""
+		</frame>""";
+	return MLText;
+}
+
+main()
+{
+	declare ChangeModeAction for ManialinkPage = 0;
+	ManialinkText=CreateManialink(False);
+	while(True)
+	{
+		yield;
+		if(GetStartLineBlock()!=Null)
+		{
+			if(ChangeModeAction==1)
+			{
+				ManialinkText=CreateManialink(True);
+				//EnterPlaceMode_Test();
+				PlaceMode=CGameCtnEditorPluginScriptHandler::PlaceMode::Test;
+				CameraVAngle=0.28571;
+				CursorCoord.X=GetStartLineBlock().Coord.X;
+				CursorCoord.Y=GetStartLineBlock().Coord.Y;
+				CursorCoord.Z=GetStartLineBlock().Coord.Z;
+				ChangeModeAction=0;
+			}
+			if(ChangeModeAction==2)
+			{
+				ManialinkText=CreateManialink(False);
+				ChangeModeAction=0;
+			}
+		}
+	}
+}

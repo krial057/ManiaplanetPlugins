@@ -1,0 +1,284 @@
+#RequireContext CGameCtnEditorPluginScriptHandler
+#Include "MathLib" as MathLib
+
+Text CreateManialink(Boolean SphereOptions)
+{
+	declare Integer yMultiplier for ManialinkPage;
+	declare Integer diameter for ManialinkPage;
+	declare Boolean hollow for ManialinkPage;
+	declare MLText =
+	"""
+		<script><!--
+		
+			#Include "TextLib" as TextLib
+			
+			Void onSelSphereAdd()	{ declare ChangeModeAction for Page = 0; ChangeModeAction=1; declare  enterCustomSelectionMode for Page=False;enterCustomSelectionMode=True;}
+			Void onSelSphereSub()	{ declare ChangeModeAction for Page = 0; ChangeModeAction=2; declare  enterCustomSelectionMode for Page=False;enterCustomSelectionMode=True;}
+			Void onChangeSettingsDisplay() {declare Boolean showSphereOptions for Page; showSphereOptions = True; }
+			main () 
+			{
+				declare Boolean SphereOptions for Page;
+				declare  Boolean hollow for Page;
+				declare HollowCheckCross <=> (Page.GetFirstChild("qadHollowCheckCross") as CGameManialinkQuad);
+				while(True) 
+				{
+					yield;
+					
+					if(hollow&&SphereOptions)
+					{
+						HollowCheckCross.Show();
+					}
+					else if(!hollow&&SphereOptions)
+					{
+						HollowCheckCross.Hide();
+					}
+					
+					if(SphereOptions)
+					{
+							declare Integer yMultiplier for Page;
+							declare Integer diameter for Page;
+							declare Boolean hollow for Page;
+							declare Ctrl <=> (Page.GetFirstChild("yMulValue") as CGameManialinkEntry);
+							if(Ctrl != Null)
+								yMultiplier = TextLib::ToInteger(Ctrl.Value);
+								
+							Ctrl <=> (Page.GetFirstChild("lblDiameterValue") as CGameManialinkEntry);
+							if(Ctrl != Null)
+								diameter = TextLib::ToInteger(Ctrl.Value);
+							
+					}
+					foreach(Event in PendingEvents) 
+					{
+						if(Event.Type == CGameManialinkScriptEvent::Type::MouseClick)
+						{	
+							if(Event.ControlId == "qadSelSphereAdd")	onSelSphereAdd();
+							if(Event.ControlId == "qadSelSphereSub")	onSelSphereSub();
+							if(Event.ControlId == "qadHollowCheckBox"||Event.ControlId == "qadHollowCheckCross")	hollow=!hollow;
+							if(Event.ControlId == "qadSelSphereSettings"||Event.ControlId == "HelpOkQuad")
+								onChangeSettingsDisplay();
+						}
+					}
+				}
+			}
+		--></script>
+		<frame>
+			<quad posn="-160 90 -1" sizen="17 10" style="Bgs1" substyle="BgList" ScriptEvents="1"/>
+				<label id="lblSelSphere" text="Sphere" posn="-153 87"  halign="center" valign="center" style="Red" textsize="2"/>
+				<quad id="qadSelSphereAdd" posn="-156 83 1" sizen="7 7" halign="center" valign="center" style="Icons64x64_1" substyle="Add" ScriptEvents="1"/>
+				<quad id="qadSelSphereSub" posn="-151 83 1" sizen="7 7" halign="center" valign="center" style="Icons64x64_1" substyle="Sub" ScriptEvents="1"/>
+				<quad id="qadSelSphereSettings" posn="-146 83 1" sizen="7 7" valign="center" halign="center" style="UIConstructionSimple_Buttons" substyle="Tools" ScriptEvents="1"/>""";
+	if(SphereOptions)
+	{
+		MLText ^=
+		"""
+			<quad id="qadSettingsTitle" posn="0 50 -1" sizen="80 15" halign="center" valign="center" style="Bgs1InRace" substyle="BgTitle3_1"/>
+			<label id="lblSettingsTitle" text="Sphere Setiings" posn="0 50" halign="center" valign="center" style="TextTitle3"/>
+			
+			<quad id="qadSettings" posn="0 43 -2" sizen="100 30" halign="center" valign="top" style="Bgs1" substyle="BgList"/>
+				
+				<label id="lblYMul" text="Height Scalar(1 for no scalar)" posn="-38 35" valign="center" textsize="2"/>
+				<entry id="yMulValue" default="{{{yMultiplier}}}" posn="28 35" sizen="10 3.5" halign="left" valign="center" textsize="2"/>
+				
+				<label id="lblDiameter" text="Sphere Diameter(odd values are best)" posn="-38 30" valign="center" textsize="2"/>
+				<entry id="lblDiameterValue" default="{{{diameter}}}" posn="28 30" sizen="10 3.5" halign="left" valign="center" textsize="2"/>
+				
+				<label id="lblHollow" text="Hollow?" posn="-38 25" valign="center" textsize="2"/>
+				<quad id="qadHollowCheckBox" posn="28 25" sizen="5 5" halign="left" valign="center" style="Icons64x64_1" substyle="ClipPause" scriptevents="1"/>
+				<quad id="qadHollowCheckCross" posn="28 25 1" sizen="5 5" halign="left" valign="center" style="Icons64x64_1" substyle="Close" scriptevents="1"/>
+				
+				<quad id="HelpOkQuad" posn="0 20 -1" sizen="30 6" halign="center" valign="center" style="Bgs1" substyle="BgCard" ScriptEvents="1"/>
+				<label id="HelpOkLabel" text="OK" posn="0 20" halign="center" valign="center" style="TextButtonSmall" textsize="2"/>
+			
+		""";
+	}
+	MLText ^=
+	"""
+		</frame>
+	""";
+	return MLText;
+}
+
+// Implicit circle equation
+Integer FValue(Integer x, Integer y, Integer z, Integer R) 
+{ 
+	return x*x + y*y + z*z - R*R;
+}
+
+Void createWall()
+{
+	yield;
+}
+
+Void createSphere(Int3 position,Integer Diameter, Boolean Hollow, Integer yScale, Boolean Create)
+{
+	declare Radius = Diameter/2;
+	declare Int3 positionStart;
+	positionStart.X=position.X-Radius;
+	positionStart.Y=position.Y-Radius;
+	positionStart.Z=position.Z-Radius;
+	
+	declare MidX = (Diameter-1)/2;
+	declare MidY = MidX;
+	declare MidZ =MidY;
+	declare Integer[][][] Sphere;
+	//initialize
+	for(i,0,Diameter)
+	{
+		Sphere.add(Integer[][]);
+		for(j,0,Diameter)
+		{
+			Sphere[i].add(Integer[]);
+			for(k,0,Diameter)
+			{
+				Sphere[i][j].add(0);
+			}
+		}
+	}
+	
+	//completly fill it
+	declare Integer Value;
+	declare NumberOfVoxels=0;
+	for(x,0,Diameter) 
+	{
+		for(y,0,Diameter) 
+		{
+			for(z,0,Diameter) 
+			{
+				if(FValue(x-MidX, y-MidY, z-MidZ, Radius) <= 0) 
+				{
+					Value = 1;
+					NumberOfVoxels+=1;
+				} else 
+				{
+					Value = 0;
+				}
+				Sphere[x][y][z] = Value;
+			}
+		}
+	}
+	
+	//Hollow the sphere
+	if(Hollow) {
+		NumberOfVoxels = 0;
+		for(x,0,Diameter) {
+			for(y,0,Diameter) {
+				for(z,0,Diameter) { // Walk through all voxels.
+					if(Sphere[x][y][z]==0) continue; // If the voxel isn't set, do nothing; if the voxel is set, look at its 6 neighbours.
+					declare NeighboursSet = 0;
+					declare NeighboursNotSet = 0;
+					if(x+1>Diameter||Sphere[x + 1][y][z]==0)
+						NeighboursNotSet+=1;
+					else
+						NeighboursSet+=1;
+					if(x-1<0||Sphere[x - 1][y][z]==0)
+						NeighboursNotSet+=1;
+					else
+						NeighboursSet+=1;
+					if(y+1>Diameter||Sphere[x][y+1][z]==0)
+						NeighboursNotSet+=1;
+					else
+						NeighboursSet+=1;
+					if(y-1<0||Sphere[x][y-1][z]==0)
+						NeighboursNotSet+=1;
+					else
+						NeighboursSet+=1;
+					if(z+1>Diameter||Sphere[x][y][z+1]==0)
+						NeighboursNotSet+=1;
+					else
+						NeighboursSet+=1;
+					if(z-1<0||Sphere[x][y][z-1]==0)
+						NeighboursNotSet+=1;
+					else
+						NeighboursSet+=1;
+					// A voxel is defined to be at the border if it has both colored and uncolored (or undefined) neighbours.
+					if(NeighboursSet > 0 && NeighboursNotSet > 0) 
+					{ 
+						Sphere[x][y][z]+=1;
+						NumberOfVoxels+=1;
+					}
+				}
+			}
+		}
+	}
+	
+	//create it
+	for(z,0,Diameter) 
+	{
+		
+		for(x,0,Diameter) 
+		{
+			for(y,0,Diameter) 
+			{
+				declare Integer temp=0;
+				if(Hollow) temp=1;
+				if(Sphere[x][y][z] >= 1+temp) 
+				{
+					for(i,0,yScale)
+					{
+						if(Create)
+							CustomSelectionCoords.add(<positionStart.X+x,positionStart.Y+yScale*y+i,positionStart.Z+z>);
+						else if(CustomSelectionCoords.exists(<positionStart.X+x,positionStart.Y+yScale*y+i,positionStart.Z+z>))
+							CustomSelectionCoords.remove(<positionStart.X+x,positionStart.Y+yScale*y+i,positionStart.Z+z>);
+					}
+				}
+			}
+		}
+	}
+}
+
+main()
+{
+	declare Integer ChangeModeAction for ManialinkPage;
+	declare Boolean enterCustomSelectionMode for ManialinkPage;
+	
+	declare Integer yMultiplier for ManialinkPage=3;
+	declare Integer diameter for ManialinkPage=7;
+	declare Boolean hollow for ManialinkPage=False;
+	
+	declare showSphereOptions for ManialinkPage=False;
+	declare SphereOptions  for ManialinkPage=False;
+	
+	declare persistent selectedBlocks for Map=0;
+	declare persistent customSelctionMode for Map=0;
+	ManialinkText = CreateManialink(False);	
+	while(True)
+	{
+		yield;
+		
+		if(customSelctionMode==1&&CustomSelectionCoords.count!=selectedBlocks)
+		{
+			if(ChangeModeAction==1)
+			{
+				//remove position block from selection
+				declare Int3 positionBlock= CustomSelectionCoords[CustomSelectionCoords.count-1];
+				CustomSelectionCoords.removekey(CustomSelectionCoords.count-1);
+				createSphere(positionBlock,diameter,hollow,yMultiplier,True);
+				selectedBlocks=CustomSelectionCoords.count;
+			}
+			else
+			{
+				//remove position block from selection
+				declare Int3 positionBlock= CustomSelectionCoords[CustomSelectionCoords.count-1];
+				CustomSelectionCoords.removekey(CustomSelectionCoords.count-1);
+				createSphere(positionBlock,diameter,hollow,yMultiplier,False);
+				selectedBlocks=CustomSelectionCoords.count;
+			}
+		}
+		if(enterCustomSelectionMode)
+		{
+			log("Build Sphere Mode");
+			customSelctionMode=1;
+			PlaceMode = ::PlaceMode::CustomSelection; 
+			enterCustomSelectionMode=False;
+		}
+		
+		
+		if(showSphereOptions)
+		{
+			showSphereOptions = False;
+			SphereOptions = !SphereOptions;
+			ManialinkText = CreateManialink(SphereOptions);
+		}
+
+	}
+}
