@@ -67,10 +67,9 @@ Text CreateManialink(Boolean TerrainGenerationOptions)
 	return MLText;
 }
 
-Void buildTerrain(Text[] blocks, Int3 positionStart,Int3 positionEnd)
+Void buildTerrain(CBlockModel[] blocks, Int3 positionStart,Int3 positionEnd)
 {
 	declare Integer i;
-	RemoveTerrainBlocks(positionStart,positionEnd);
 	for(i,0,blocks.count-1)
 	{
 		if(CanPlaceTerrainBlocks(TerrainBlockModels[blocks[i]], <positionStart.X+i,0,positionStart.Z+i>, <positionEnd.X-i,0,positionEnd.Z-i>))
@@ -106,87 +105,87 @@ main()
 	/**
 	 *Declaration of the different height terrain combinations
 	 **/
-	declare terrainBlockTemplates=Text[][][];
-	terrainBlockTemplates.add(Text[][]);
-	terrainBlockTemplates[0].add(Text[]);
-	terrainBlockTemplates[0][0].add("WaterCliff12");
+	declare terrainBlockTemplates=CBlockModel[][][];
+	terrainBlockTemplates.add(CBlockModel[][]);
+	terrainBlockTemplates[0].add(CBlockModel[]);
+	terrainBlockTemplates[0][0].add(TerrainBlockModels[1]);
 	
-	terrainBlockTemplates.add(Text[][]);
-	terrainBlockTemplates[1].add(Text[]);
-	terrainBlockTemplates[1][0].add("DirtHill2");
+	terrainBlockTemplates.add(CBlockModel[][]);
+	terrainBlockTemplates[1].add(CBlockModel[]);
+	terrainBlockTemplates[1][0].add(TerrainBlockModels[1]);
 	
-	terrainBlockTemplates.add(Text[][]);
-	terrainBlockTemplates[2].add(Text[]);
-	terrainBlockTemplates[2][0].add("DirtHill2");
-	terrainBlockTemplates[2][0].add("DirtHill2");
+	terrainBlockTemplates.add(CBlockModel[][]);
+	terrainBlockTemplates[2].add(CBlockModel[]);
+	terrainBlockTemplates[2][0].add(TerrainBlockModels[1]);
+	terrainBlockTemplates[2][0].add(TerrainBlockModels[1]);
 	
-	terrainBlockTemplates.add(Text[][]);
-	terrainBlockTemplates[3].add(Text[]);
-	terrainBlockTemplates[3][0].add("DirtHill2");
-	terrainBlockTemplates[3][0].add("DirtHill2");
-	terrainBlockTemplates[3][0].add("DirtHill2");
+	terrainBlockTemplates.add(CBlockModel[][]);
+	terrainBlockTemplates[3].add(CBlockModel[]);
+	terrainBlockTemplates[3][0].add(TerrainBlockModels[1]);
+	terrainBlockTemplates[3][0].add(TerrainBlockModels[1]);
+	terrainBlockTemplates[3][0].add(TerrainBlockModels[1]);
 	
-	terrainBlockTemplates.add(Text[][]);
-	terrainBlockTemplates[4].add(Text[]);
-	terrainBlockTemplates[4][0].add("DirtHill2");
-	terrainBlockTemplates[4][0].add("DirtHill2");
-	terrainBlockTemplates[4][0].add("DirtHill2");
-	terrainBlockTemplates[4][0].add("DirtHill2");
-	terrainBlockTemplates[4].add(Text[]);
-	terrainBlockTemplates[4][1].add("DirtCliff8");
+	terrainBlockTemplates.add(CBlockModel[][]);
+	terrainBlockTemplates[4].add(CBlockModel[]);
+	terrainBlockTemplates[4][0].add(TerrainBlockModels[1]);
+	terrainBlockTemplates[4][0].add(TerrainBlockModels[1]);
+	terrainBlockTemplates[4][0].add(TerrainBlockModels[1]);
+	terrainBlockTemplates[4][0].add(TerrainBlockModels[1]);
+	terrainBlockTemplates[4].add(CBlockModel[]);
+	terrainBlockTemplates[4][1].add(TerrainBlockModels[2]);
 	
-	terrainBlockTemplates.add(Text[][]);
-	terrainBlockTemplates[5].add(Text[]);
-	terrainBlockTemplates[5][0].add("DirtHill2");
-	terrainBlockTemplates[5][0].add("DirtCliff8");
-	terrainBlockTemplates[5].add(Text[]);
-	terrainBlockTemplates[5][1].add("DirtCliff8");
-	terrainBlockTemplates[5][1].add("DirtHill2");
+	terrainBlockTemplates.add(CBlockModel[][]);
+	terrainBlockTemplates[5].add(CBlockModel[]);
+	terrainBlockTemplates[5][0].add(TerrainBlockModels[1]);
+	terrainBlockTemplates[5][0].add(TerrainBlockModels[2]);
+	terrainBlockTemplates[5].add(CBlockModel[]);
+	terrainBlockTemplates[5][1].add(TerrainBlockModels[2]);
+	terrainBlockTemplates[5][1].add(TerrainBlockModels[1]);
 	
 	
-	terrainBlockTemplates.add(Text[][]);
-	terrainBlockTemplates[6].add(Text[]);	
-	terrainBlockTemplates[6][0].add("DirtHill2");
-	terrainBlockTemplates[6][0].add("DirtHill2");
-	terrainBlockTemplates[6][0].add("DirtCliff8");
-	terrainBlockTemplates[6].add(Text[]);
-	terrainBlockTemplates[6][1].add("DirtCliff8");
-	terrainBlockTemplates[6][1].add("DirtHill2");
-	terrainBlockTemplates[6][1].add("DirtHill2");
-	terrainBlockTemplates[6].add(Text[]);
-	terrainBlockTemplates[6][2].add("DirtHill2");
-	terrainBlockTemplates[6][2].add("DirtCliff8");
-	terrainBlockTemplates[6][2].add("DirtHill2");
+	terrainBlockTemplates.add(CBlockModel[][]);
+	terrainBlockTemplates[6].add(CBlockModel[]);	
+	terrainBlockTemplates[6][0].add(TerrainBlockModels[1]);
+	terrainBlockTemplates[6][0].add(TerrainBlockModels[1]);
+	terrainBlockTemplates[6][0].add(TerrainBlockModels[2]);
+	terrainBlockTemplates[6].add(CBlockModel[]);
+	terrainBlockTemplates[6][1].add(TerrainBlockModels[2]);
+	terrainBlockTemplates[6][1].add(TerrainBlockModels[1]);
+	terrainBlockTemplates[6][1].add(TerrainBlockModels[1]);
+	terrainBlockTemplates[6].add(CBlockModel[]);
+	terrainBlockTemplates[6][2].add(TerrainBlockModels[1]);
+	terrainBlockTemplates[6][2].add(TerrainBlockModels[2]);
+	terrainBlockTemplates[6][2].add(TerrainBlockModels[1]);
 	
-	terrainBlockTemplates.add(Text[][]);
-	terrainBlockTemplates[7].add(Text[]);
-	terrainBlockTemplates[7][0].add("DirtCliff8");
-	terrainBlockTemplates[7][0].add("DirtCliff8");
+	terrainBlockTemplates.add(CBlockModel[][]);
+	terrainBlockTemplates[7].add(CBlockModel[]);
+	terrainBlockTemplates[7][0].add(TerrainBlockModels[2]);
+	terrainBlockTemplates[7][0].add(TerrainBlockModels[2]);
 	
-	terrainBlockTemplates.add(Text[][]);
-	terrainBlockTemplates[8].add(Text[]);
-	terrainBlockTemplates[8][0].add("DirtCliff8");
-	terrainBlockTemplates[8][0].add("DirtCliff8");
+	terrainBlockTemplates.add(CBlockModel[][]);
+	terrainBlockTemplates[8].add(CBlockModel[]);
+	terrainBlockTemplates[8][0].add(TerrainBlockModels[2]);
+	terrainBlockTemplates[8][0].add(TerrainBlockModels[2]);
 	
-	terrainBlockTemplates.add(Text[][]);
-	terrainBlockTemplates[9].add(Text[]);
-	terrainBlockTemplates[9][0].add("DirtHill2");
-	terrainBlockTemplates[9][0].add("DirtCliff8");
-	terrainBlockTemplates[9][0].add("DirtCliff8");
-	terrainBlockTemplates[9].add(Text[]);
-	terrainBlockTemplates[9][1].add("DirtCliff8");
-	terrainBlockTemplates[9][1].add("DirtHill2");
-	terrainBlockTemplates[9][1].add("DirtCliff8");
-	terrainBlockTemplates[9].add(Text[]);
-	terrainBlockTemplates[9][2].add("DirtCliff8");
-	terrainBlockTemplates[9][2].add("DirtCliff8");
-	terrainBlockTemplates[9][2].add("DirtHill2");
+	terrainBlockTemplates.add(CBlockModel[][]);
+	terrainBlockTemplates[9].add(CBlockModel[]);
+	terrainBlockTemplates[9][0].add(TerrainBlockModels[1]);
+	terrainBlockTemplates[9][0].add(TerrainBlockModels[2]);
+	terrainBlockTemplates[9][0].add(TerrainBlockModels[2]);
+	terrainBlockTemplates[9].add(CBlockModel[]);
+	terrainBlockTemplates[9][1].add(TerrainBlockModels[2]);
+	terrainBlockTemplates[9][1].add(TerrainBlockModels[1]);
+	terrainBlockTemplates[9][1].add(TerrainBlockModels[2]);
+	terrainBlockTemplates[9].add(CBlockModel[]);
+	terrainBlockTemplates[9][2].add(TerrainBlockModels[2]);
+	terrainBlockTemplates[9][2].add(TerrainBlockModels[2]);
+	terrainBlockTemplates[9][2].add(TerrainBlockModels[1]);
 	
-	terrainBlockTemplates.add(Text[][]);
-	terrainBlockTemplates[10].add(Text[]);
-	terrainBlockTemplates[10][0].add("DirtCliff8");
-	terrainBlockTemplates[10][0].add("DirtCliff8");
-	terrainBlockTemplates[10][0].add("DirtCliff8");
+	terrainBlockTemplates.add(CBlockModel[][]);
+	terrainBlockTemplates[10].add(CBlockModel[]);
+	terrainBlockTemplates[10][0].add(TerrainBlockModels[2]);
+	terrainBlockTemplates[10][0].add(TerrainBlockModels[2]);
+	terrainBlockTemplates[10][0].add(TerrainBlockModels[2]);
 	
 	while(True)
 	{
@@ -202,7 +201,7 @@ main()
 		{
 			doGenerateTerrain=False;
 			
-			PlaceTerrainBlocks(TerrainBlockModels["WaterCliff12"], <0,0,0>, <Map.Size.X-1,0,Map.Size.Z-1>);
+			PlaceTerrainBlocks(TerrainBlockModels[0], <0,0,0>, <Map.Size.X-1,0,Map.Size.Z-1>);
 			
 			for(i,0,maxBlocks)
 			{
@@ -213,6 +212,7 @@ main()
 				declare Integer randPosX=MathLib::Rand(0,Map.Size.X-1-randSizeX);
 				declare Integer randPosZ=MathLib::Rand(0,Map.Size.Z-1-randSizeZ);
 				declare Integer randIndex=MathLib::Rand(0,terrainBlockTemplates[randHeight].count-1);
+				
 				buildTerrain(terrainBlockTemplates[randHeight][randIndex],<randPosX,0,randPosZ>,<randPosX+randSizeX,0,randPosZ+randSizeZ>);
 			}
 		}
